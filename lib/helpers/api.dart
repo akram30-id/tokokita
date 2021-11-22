@@ -49,7 +49,7 @@ class Api {
   dynamic _returnResponse(http.Response response) {
     switch (response.statusCode) {
       case 200:
-        return response;
+        return response.body;
 
       case 400:
         throw BadRequestException(response.body.toString());

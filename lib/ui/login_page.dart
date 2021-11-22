@@ -138,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
             borderRadius: BorderRadius.circular(25.0), color: Colors.black),
         child: Center(
           child: Text(
-            'Registrasi',
+            'Login',
             style: TextStyle(
                 color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
           ),

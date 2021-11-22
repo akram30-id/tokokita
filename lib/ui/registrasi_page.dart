@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:tokokita/bloc/registrasi_bloc.dart';
+import 'package:tokokita/widget/success_dialog.dart';
+import 'package:tokokita/widget/warning_dialog.dart';
 
 class RegistrasiPage extends StatefulWidget {
   @override
@@ -8,7 +11,8 @@ class RegistrasiPage extends StatefulWidget {
 class _RegistrasiPageState extends State<RegistrasiPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  bool _secureText = true;
+  bool _secureText1 = true;
+  bool _secureText2 = true;
 
   final _namaTextController = TextEditingController();
   final _emailTextController = TextEditingController();
@@ -88,9 +92,9 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
       keyboardType: TextInputType.text,
       controller: _emailTextController,
       validator: (value) {
-        Pattern pattern = r'^\d+(?:\.\d+)?$';
-        RegExp regex = RegExp(pattern);
-        if (!regex.hasMatch(value)) {
+        // Pattern pattern = r'^\d+(?:\.\d+)@?$';
+        // RegExp regex = RegExp(pattern);
+        if (!value.contains('@')) {
           return 'Email tidak valid';
         }
         if (value.isEmpty) {
@@ -101,9 +105,15 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
     );
   }
 
-  showHide() {
+  showHide1() {
     setState(() {
-      _secureText = !_secureText;
+      _secureText1 = !_secureText1;
+    });
+  }
+
+  showHide2() {
+    setState(() {
+      _secureText2 = !_secureText2;
     });
   }
 
@@ -112,14 +122,14 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
       decoration: InputDecoration(
           labelText: "Password",
           suffixIcon: IconButton(
-            onPressed: showHide,
+            onPressed: showHide1,
             icon: Icon(
-              _secureText ? Icons.visibility_off : Icons.visibility,
+              _secureText1 ? Icons.visibility_off : Icons.visibility,
               color: Colors.black,
             ),
           )),
       keyboardType: TextInputType.text,
-      obscureText: _secureText,
+      obscureText: _secureText1,
       controller: _passwordTextController,
       validator: (value) {
         if (value.length < 6) {
@@ -135,14 +145,14 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
       decoration: InputDecoration(
           labelText: "Konfirmasi Password",
           suffixIcon: IconButton(
-            onPressed: showHide,
+            onPressed: showHide2,
             icon: Icon(
-              _secureText ? Icons.visibility_off : Icons.visibility,
+              _secureText2 ? Icons.visibility_off : Icons.visibility,
               color: Colors.black,
             ),
           )),
       keyboardType: TextInputType.text,
-      obscureText: _secureText,
+      obscureText: _secureText2,
       validator: (value) {
         if (value != _passwordTextController.text) {
           return "Konfirmasi password tidak sama";
@@ -163,6 +173,9 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
     return InkWell(
       onTap: () {
         var validate = _formKey.currentState.validate();
+        if (validate) {
+          if (!_isLoading) _submit();
+        }
       },
       child: Container(
         width: 200,
@@ -179,5 +192,42 @@ class _RegistrasiPageState extends State<RegistrasiPage> {
         ),
       ),
     );
+  }
+
+  void _submit() {
+    _formKey.currentState.save();
+    setState(() {
+      _isLoading = true;
+    });
+    RegistrasiBloc.registrasi(
+            nama: _namaTextController.text,
+            email: _emailTextController.text,
+            password: _passwordTextController.text)
+        .then(
+            (value) => showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return SuccessDialog(
+                      description: "Registrasi berhasil silahkan login",
+                      okClick: () {
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ), onError: (error) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return WarningDialog(
+            description: 'Registrasi gagal, silahkan coba lagi',
+          );
+        },
+      );
+    });
+    setState(() {
+      _isLoading = false;
+    });
   }
 }
